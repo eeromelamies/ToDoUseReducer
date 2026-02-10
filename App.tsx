@@ -1,109 +1,84 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView } from 'react-native';
+import { useTodos } from './hooks/useTodos';
 
-interface Todo { 
-  id: number; 
-  name: string; 
-  done: boolean;
-}
-
-const useAsyncStorage = (key: string, defValue: Todo[]) => {
-    const [storedValue, setStoredValue] = useState<Todo[]>(defValue);
-
-    useEffect(() => {
-        AsyncStorage.getItem(key)
-            .then(value => {
-                if (value === null) return defValue;
-                return JSON.parse(value);
-            })
-            .then(setStoredValue)
-    }, [key]);
-
-    const setValue = (value: Todo[] | ((val: Todo[]) => Todo[])) => {
-        const valueToStore = value instanceof Function ? value(storedValue) : value;
-        setStoredValue(valueToStore);
-        AsyncStorage.setItem(key, JSON.stringify(valueToStore));
-    }
-
-    return [storedValue, setValue] as const;
-}
-
-export default function List() {
-  const [task, setTask] = useState('');
-  
-
-  const [tasks, setTasks] = useAsyncStorage('@tasks_key', []);
+export default function App() {
+  const { state, dispatch } = useTodos();
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Todo list:</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>TODO</Text>
+
+        <Button 
+        title="Add" 
+        onPress={() => dispatch({ type: 'add' })} 
+        color="#2e4d2e"
+      />
       
       <TextInput
         style={styles.input}
-        value={task}
-        onChangeText={setTask}
-        placeholder="Task"
+        value={state.inputValue} 
+        onChangeText={(text) => dispatch({ type: 'inputValue', payload: text })}
+        placeholder="Add a new task"
+        placeholderTextColor="#666"
       />
-
-      <Button title="Save" onPress={() => {
-        if (task.trim() !== '') {
-          setTasks([...tasks, { id: Date.now(), name: task, done: false }]);
-          setTask('');
-        }
-      }} />
-
-      <View style={{ marginTop: 20 }}>
-        {tasks.map(item => (
-          <TouchableOpacity 
-            key={item.id} 
-            onPress={() => {
-              setTasks(tasks.map(task => 
-                task.id === item.id ? { ...task, done: !task.done } : task
-              ));
-            }}
-          >
-            <Text style={[
+      
+    
+    
+      <ScrollView style={styles.listContainer}>
+        {state.todos.map(todo => (
+          <Text 
+            key={todo.id} 
+            onPress={() => dispatch({ type: 'toggle', payload: todo.id })}
+            style={[
               styles.listItem, 
-              item.done && styles.listItemDone 
-            ]}>
-              • {item.name}
-            </Text>
-          </TouchableOpacity>
+              todo.done && styles.listItemDone
+            ]}
+          >
+            {todo.name} {todo.done}
+          </Text>
         ))}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: { 
     padding: 40,
     flex: 1,
-    backgroundColor: '#a9bda9'
+    backgroundColor: '#659070' 
   },
-
-  title: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    marginBottom: 10, 
-    color: '#000' 
+  
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#000'
   },
-
   input: { 
     borderWidth: 1, 
-    padding: 10, 
+    borderColor: '#000',
+    padding: 15, 
     marginBottom: 10, 
-    color: '#000', 
+    color: '#000',
+    backgroundColor: '#fff', 
+    borderRadius: 5,
+  },
+  listContainer: {
+    marginTop: 20,
   },
   listItem: {
-     padding: 10, 
-    fontSize: 20,
-     borderColor: '#558d4d', 
-     color: '#000' 
+    padding: 15, 
+    fontSize: 18,
+    backgroundColor: '#f0f0f0',
+    marginBottom: 5,
+    borderRadius: 5,
+    color: '#000',
   },
   listItemDone: {
     textDecorationLine: 'line-through',
-    color: '#555' 
+    color: '#659070',
   }
 });
-
