@@ -8,12 +8,6 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>TODO</Text>
-
-        <Button 
-        title="Add" 
-        onPress={() => dispatch({ type: 'add' })} 
-        color="#2e4d2e"
-      />
       
       <TextInput
         style={styles.input}
@@ -23,7 +17,11 @@ export default function App() {
         placeholderTextColor="#666"
       />
       
-    
+      <Button 
+        title="Add" 
+        onPress={() => dispatch({ type: 'add' })} 
+        color="#2e4d2e"
+      />
     
       <ScrollView style={styles.listContainer}>
         {state.todos.map(todo => (
